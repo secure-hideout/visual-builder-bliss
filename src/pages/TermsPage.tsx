@@ -2,7 +2,6 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import BottomNavigation from "@/components/BottomNavigation";
 
 export default function TermsPage() {
   const navigate = useNavigate();
@@ -125,7 +124,6 @@ export default function TermsPage() {
         </div>
       </main>
 
-      <BottomNavigation />
     </div>
   );
 }

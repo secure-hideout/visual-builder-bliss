@@ -1,17 +1,20 @@
-import { Search, ChefHat, Instagram, Twitter, Facebook, Plus } from "lucide-react";
-import InfoIconButton from "../components/ui/InfoIconButton";
+import { Search, ChefHat, Instagram, Twitter, Facebook, Plus, ChevronDown, Flame, Clock } from "lucide-react";
+import MainHeader from "../components/MainHeader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
-import BottomNavigation from "@/components/BottomNavigation";
 import MobileHeader from "@/components/MobileHeader";
 import RecipeCard from "@/components/RecipeCard";
 import RandomRecipeModal from "@/components/RandomRecipeModal";
 import { useState, useEffect, useRef } from "react";
 import { RecipeService, type RecipeListItem, type RandomRecipeResponse } from "@/api/recipeService";
 import { toast } from "sonner";
-import beingHomeLogo from "/beinghomelogo.jpeg";
+// Removed legacy logo import
+import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
+import AppleScrollFeatures from "@/components/AppleScrollFeatures";
+import CinematicText from "../components/CinematicText";
+import Magnetic from "../components/Magnetic";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -26,11 +29,21 @@ const HomePage = () => {
   const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
   const [randomRecipe, setRandomRecipe] = useState<RandomRecipeResponse | null>(null);
   const [isLoadingRandom, setIsLoadingRandom] = useState(false);
+  // Mouse tracking for hero glow
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const springX = useSpring(mouseX, { stiffness: 50, damping: 20 });
+  const springY = useSpring(mouseY, { stiffness: 50, damping: 20 });
+
+  function handleMouseMove({ clientX, clientY, currentTarget }: React.MouseEvent) {
+    const { left, top } = currentTarget.getBoundingClientRect();
+    mouseX.set(clientX - left);
+    mouseY.set(clientY - top);
+  }
 
   useEffect(() => {
     const fetchFeaturedRecipes = async () => {
       try {
-        // Try to get popular recipes first, fallback to regular recipes
         let response;
         try {
           response = await RecipeService.getPopularRecipes(1, 6);
@@ -46,7 +59,6 @@ const HomePage = () => {
         }
       } catch (error) {
         console.error('Error fetching featured recipes:', error);
-        // Fallback to empty array
         setFeaturedRecipes([]);
       } finally {
         setIsLoading(false);
@@ -64,78 +76,31 @@ const HomePage = () => {
 
   useEffect(() => {
     let ticking = false;
-    
     const handleScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
           const currentScrollY = window.scrollY;
           const scrollDiff = Math.abs(currentScrollY - lastScrollY);
-          
-          // Only process significant scroll changes to avoid Safari momentum issues
           if (scrollDiff > 5) {
             if (currentScrollY > lastScrollY && currentScrollY > 50) {
-              // Scrolling down - expand buttons
               setIsExpanded(true);
-              
-              // Clear existing timeout when actively scrolling down
-              if (scrollTimeoutRef.current) {
-                clearTimeout(scrollTimeoutRef.current);
-              }
-              
-              // Set timeout to contract after 4 seconds for Safari compatibility
-              scrollTimeoutRef.current = setTimeout(() => {
-                setIsExpanded(false);
-              }, 4000);
+              if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+              scrollTimeoutRef.current = setTimeout(() => setIsExpanded(false), 4000);
             } else if (currentScrollY < lastScrollY && scrollDiff > 10) {
-              // Scrolling up with significant movement - contract buttons
               setIsExpanded(false);
-              
-              // Clear timeout when scrolling up
-              if (scrollTimeoutRef.current) {
-                clearTimeout(scrollTimeoutRef.current);
-              }
+              if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
             }
-            
             setLastScrollY(currentScrollY);
           }
-          
           ticking = false;
         });
-        
         ticking = true;
       }
     };
-
-    // Add touchstart and touchmove for iOS Safari
-    const handleTouchStart = () => {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-    };
-
-    const handleTouchEnd = () => {
-      // Delay to allow momentum scrolling to complete
-      setTimeout(() => {
-        if (window.scrollY > 50) {
-          setIsExpanded(true);
-          scrollTimeoutRef.current = setTimeout(() => {
-            setIsExpanded(false);
-          }, 4000);
-        }
-      }, 100);
-    };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd, { passive: true });
-    
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchend', handleTouchEnd);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     };
   }, [lastScrollY]);
 
@@ -148,15 +113,9 @@ const HomePage = () => {
     setIsLoadingRandom(true);
     try {
       const response = await RecipeService.getRandomRecipe();
-      if (response.success && response.data) {
-        setRandomRecipe(response.data);
-      } else {
-        toast.error(response.message || "Failed to get random recipe");
-        setRandomRecipe(null);
-      }
+      if (response.success && response.data) setRandomRecipe(response.data);
+      else setRandomRecipe(null);
     } catch (error) {
-      console.error('Error fetching random recipe:', error);
-      toast.error("Failed to get random recipe. Please try again.");
       setRandomRecipe(null);
     } finally {
       setIsLoadingRandom(false);
@@ -178,274 +137,195 @@ const HomePage = () => {
     setRandomRecipe(null);
   };
 
-  // Placeholder social media posts
-  const socialPosts = [
-    {
-      id: 1,
-      platform: "instagram",
-      user: "@recipemasters",
-      content: "Check out this amazing pasta dish! 🍝 Simple ingredients, incredible flavor. What's your favorite comfort food?",
-      likes: 124,
-      time: "2h ago",
-      image: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400&h=300&fit=crop"
-    },
-    {
-      id: 2,
-      platform: "twitter",
-      user: "@healthyeats",
-      content: "Starting your morning right with this nutritious breakfast bowl! 🥣 Packed with oats, fresh fruits, and energy for the day ahead.",
-      likes: 89,
-      time: "4h ago",
-      image: "https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?w=400&h=300&fit=crop"
-    },
-    {
-      id: 3,
-      platform: "facebook",
-      user: "Cooking Community",
-      content: "Weekend cooking tip: Prep your ingredients in advance for stress-free weekday meals! What's your favorite meal prep hack?",
-      likes: 67,
-      time: "1d ago",
-      image: null
-    }
-  ];
-
-  const getSocialIcon = (platform: string) => {
-    switch (platform) {
-      case "instagram":
-        return <Instagram className="w-4 h-4 text-pink-500" />;
-      case "twitter":
-        return <Twitter className="w-4 h-4 text-blue-500" />;
-      case "facebook":
-        return <Facebook className="w-4 h-4 text-blue-600" />;
-      default:
-        return null;
-    }
-  };
-
   return (
     <div
-      className="min-h-screen bg-background pb-24 lg:pb-20 pt-14 lg:pt-0"
-      style={{
-        position: "relative",
-        WebkitOverflowScrolling: "touch"
-      }}
+      className="relative min-h-screen bg-transparent pb-24 lg:pb-20"
+      style={{ WebkitOverflowScrolling: "touch" }}
     >
-      {/* Mobile Sticky Header */}
-      <MobileHeader />
+      {/* Editorial Depth Layer — Fixed Background Text */}
+      <div className="fixed top-20 left-4 pointer-events-none select-none z-0 opacity-[0.03] overflow-hidden whitespace-nowrap">
+        <h1 className="text-[25vw] font-black uppercase leading-none tracking-tighter text-white">
+          BEING HOME FOODS
+        </h1>
+      </div>
 
-      <header className="bg-card shadow-card border-b border-border">
-        <div className="px-4 py-6">
-          {/* Logo and Info Button Row */}
-          <div className="flex items-center justify-between mb-6">
-            {/* Being Home Logo - Extreme Left */}
-            <img 
-              src={beingHomeLogo}
-              alt="Being Home Logo" 
-              className="h-12 sm:h-14 md:h-16 w-12 sm:w-14 md:w-16 object-cover rounded-full"
-              style={{ 
-                transform: 'scale(1.5, 1.5)',
-                transformOrigin: 'left center'
-              }}
-              onError={(e) => {
-                console.error('Logo failed to load from:', beingHomeLogo);
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-            {/* Info Button - Extreme Right */}
-            <InfoIconButton />
-          </div>
-          
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Search recipes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  handleSearch();
-                }
-              }}
-              className="pl-10 bg-background border-input"
-            />
-          </div>
+      <MainHeader />
+
+      {/* Hero Section */}
+      <div 
+        className="relative h-[85vh] w-full flex flex-col justify-center items-center text-center px-4 overflow-hidden"
+        onMouseMove={handleMouseMove}
+      >
+        {/* Removed Hero Mouse Glow per user feedback */}
+
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+          <motion.div 
+            animate={{ 
+              x: [0, 80, 0], 
+              y: [0, 40, 0],
+              scale: [1, 1.1, 1]
+            }} 
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }} 
+            className="absolute top-[15%] left-[5%] w-[40vw] h-[40vw] rounded-full bg-primary/10 blur-[120px] mix-blend-screen"
+          />
+          <motion.div 
+            animate={{ 
+              x: [0, -60, 0], 
+              y: [0, 80, 0],
+              scale: [1, 1.2, 1]
+            }} 
+            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }} 
+            className="absolute bottom-[10%] right-[5%] w-[50vw] h-[50vw] rounded-full bg-primary/5 blur-[150px] mix-blend-overlay"
+          />
         </div>
-      </header>
 
-      <main className="px-4 py-6">
-        <section className="mb-8">
-          
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-foreground">Popular Recipes</h2>
-            <Link to="/recipes">
-              <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-                See all
-              </Button>
-            </Link>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-background/40 to-background z-[1]" />
+        
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+          className="relative z-10 space-y-6 sm:space-y-10 flex flex-col items-center max-w-5xl w-full"
+        >
+          <div className="flex items-center justify-center gap-6 mb-2">
+            <div className="h-[1px] w-16 bg-gradient-to-r from-transparent to-primary"></div>
+            <span className="text-primary/90 tracking-[0.4em] text-[10px] md:text-xs font-black uppercase">Standard Premium</span>
+            <div className="h-[1px] w-16 bg-gradient-to-l from-transparent to-primary"></div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {isLoading ? (
-              // Loading skeleton
-              Array.from({ length: 3 }).map((_, index) => (
-                <div key={index} className="animate-pulse">
-                  <div className="bg-card rounded-lg overflow-hidden shadow-card">
-                    <div className="aspect-[4/3] bg-accent/20"></div>
-                    <div className="p-4">
-                      <div className="h-4 bg-accent/20 rounded mb-2"></div>
-                      <div className="h-3 bg-accent/20 rounded w-20"></div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : featuredRecipes.length > 0 ? (
-              featuredRecipes.map((recipe) => (
-                <RecipeCard
-                  key={recipe.recipe_id}
-                  recipe_id={recipe.recipe_id}
-                  name={recipe.name}
-                  image_url={recipe.image_url}
-                  rating={recipe.rating}
-                  cook_time={recipe.cook_time}
-                  views={recipe.views}
-                  is_popular={recipe.is_popular}
+          <div className="space-y-2">
+            <h1 className="text-5xl sm:text-7xl md:text-9xl lg:text-[10rem] font-black text-white uppercase tracking-tighter leading-[0.8] drop-shadow-2xl">
+              <span className="block overflow-hidden">
+                <motion.span 
+                  initial={{ y: "100%" }} animate={{ y: 0 }} transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+                  className="block"
+                >CULINARY</motion.span>
+              </span>
+              <span className="block overflow-hidden">
+                <motion.span 
+                  initial={{ y: "100%" }} animate={{ y: 0 }} transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
+                  className="block text-transparent bg-clip-text bg-gradient-to-b from-primary via-primary/80 to-primary/40"
+                >EXCELLENCE</motion.span>
+              </span>
+            </h1>
+          </div>
+
+          <p className="hidden sm:block text-white/50 text-base md:text-xl font-medium tracking-wide max-w-xl px-4 leading-relaxed">
+            Pushing boundaries and redefining flavor. <br/> Discover food that challenges the status quo.
+          </p>
+
+          <div className="w-full max-w-xl mt-6 md:mt-12 px-6">
+            <div className="flex items-center gap-0 rounded-full p-1.5 backdrop-blur-3xl bg-white/5 border border-white/10 shadow-2xl">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 w-5 h-5" />
+                <input
+                  type="text" placeholder="Search any recipe..." value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => { if (e.key === 'Enter') handleSearch(); }}
+                  className="w-full h-10 sm:h-12 pl-12 pr-4 bg-transparent text-white placeholder:text-white/35 text-sm sm:text-base focus:outline-none"
                 />
-              ))
-            ) : (
-              <div className="col-span-full text-center py-8 text-muted-foreground">
-                No recipes found. <Link to="/create-recipe" className="text-primary hover:underline">Create your first recipe!</Link>
               </div>
-            )}
-          </div>
-        </section>
-
-        <section className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-foreground">Social Media</h2>
-            <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-              View all
-            </Button>
-          </div>
-          
-          <div className="space-y-4">
-            {socialPosts.map((post) => (
-              <Card key={post.id} className="p-4 bg-card shadow-card">
-                <div className="flex items-start gap-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    {getSocialIcon(post.platform)}
-                    <span className="font-medium text-sm text-card-foreground">{post.user}</span>
-                    <span className="text-xs text-muted-foreground">•</span>
-                    <span className="text-xs text-muted-foreground">{post.time}</span>
-                  </div>
-                </div>
-                
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <p className="text-card-foreground text-sm mb-3 leading-relaxed">
-                      {post.content}
-                    </p>
-                    
-                    <div className="flex items-center gap-2 sm:gap-4 text-xs text-muted-foreground flex-wrap">
-                      <button className="flex items-center gap-1 hover:text-primary transition touch-manipulation active:scale-95">
-                        <span>❤️</span>
-                        <span>{post.likes} likes</span>
-                      </button>
-                      <button className="hover:text-primary transition touch-manipulation active:scale-95">
-                        Comment
-                      </button>
-                      <button className="hover:text-primary transition touch-manipulation active:scale-95">
-                        Share
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {post.image && (
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden flex-shrink-0">
-                      <img
-                        src={post.image}
-                        alt="Social media post"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                </div>
-              </Card>
-            ))}
-          </div>
-          
-          <div className="text-center mt-6">
-            <p className="text-sm text-muted-foreground mb-3">
-              Connect with us on social media for more recipes and cooking tips!
-            </p>
-            <div className="flex justify-center gap-4">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Instagram className="w-4 h-4" />
-                Follow
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Twitter className="w-4 h-4" />
-                Follow
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Facebook className="w-4 h-4" />
-                Like
-              </Button>
+              <Magnetic strength={0.3}>
+                <button onClick={handleSearch} className="h-10 sm:h-12 px-5 sm:px-7 rounded-full bg-primary text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-primary/20">Search</button>
+              </Magnetic>
             </div>
           </div>
-        </section>
-      </main>
+        </motion.div>
 
-      {/* Floating Buttons */}
-      <div className="fixed bottom-20 right-2 sm:right-4 z-40 flex flex-col gap-3">
-        {/* Create Recipe Button */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2 }} className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 hidden sm:flex">
+          <span className="text-white/30 text-[10px] font-black uppercase tracking-[0.4em]">Scroll to discover</span>
+          <div className="w-[1px] h-12 bg-gradient-to-b from-primary/60 to-transparent animate-bounce-subtle" />
+        </motion.div>
+      </div>
+
+      <div className="relative z-20">
+        <main className="px-4 md:px-8 pt-10 md:pt-16 pb-4 md:pb-6">
+          <section className="mb-8 md:mb-16">
+            <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} className="flex items-end justify-between mb-10 px-1">
+              <div>
+                <p className="text-primary text-[10px] font-black uppercase tracking-[0.4em] mb-2 sm:mb-3">Hand-Picked</p>
+                <CinematicText text="Popular Recipes" className="text-2xl sm:text-4xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none" />
+              </div>
+              <Link to="/recipes">
+                <Button variant="ghost" size="lg" className="text-primary hover:text-primary/80 uppercase tracking-widest font-black text-[10px] border border-primary/30 hover:border-primary rounded-full px-5 hidden sm:flex">All Recipes →</Button>
+              </Link>
+            </motion.div>
+
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => <div key={i} className="animate-pulse rounded-3xl bg-white/5 h-64" />)}
+              </div>
+            ) : featuredRecipes.length > 0 ? (
+              <div className="bento-grid">
+                {featuredRecipes[0] && (
+                  <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: "easeOut" }} className="col-span-6">
+                    <Link to={`/recipes/${featuredRecipes[0].recipe_id}`}>
+                      <div className="relative overflow-hidden rounded-3xl h-72 md:h-[450px] group light-sweep border border-white/5 shadow-2xl">
+                        <img src={featuredRecipes[0].image_url || "/placeholder.jpg"} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
+                          <span className="inline-block px-4 py-1.5 rounded-full bg-primary text-white text-[10px] font-black uppercase mb-4">Chef's Choice</span>
+                          <h3 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none">{featuredRecipes[0].name}</h3>
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                )}
+
+                {featuredRecipes.slice(1, 5).map((recipe, i) => (
+                  <motion.div 
+                    key={recipe.recipe_id} 
+                    initial={{ opacity: 0, y: 40 }} 
+                    whileInView={{ opacity: 1, y: 0 }} 
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ duration: 0.8, ease: "easeOut", delay: i * 0.1 }}
+                    className={`${i === 0 || i === 1 ? 'col-span-6 md:col-span-3 h-64 md:h-80' : i === 2 ? 'col-span-6 md:col-span-2 h-56 md:h-64' : 'col-span-6 md:col-span-4 h-56 md:h-64'}`}
+                  >
+                    <Link to={`/recipes/${recipe.recipe_id}`}>
+                      <div className="relative overflow-hidden rounded-3xl h-full w-full group light-sweep border border-white/10 shadow-xl">
+                        <img src={recipe.image_url || "/placeholder.jpg"} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+                          <h3 className="text-lg md:text-2xl font-black text-white uppercase leading-tight line-clamp-2">{recipe.name}</h3>
+                          <div className="flex items-center gap-4 mt-3">
+                             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/5">
+                               <Clock className="w-3 h-3 text-primary/70" />
+                               <span className="text-white/80 text-[10px] font-black">{recipe.cook_time}M</span>
+                             </div>
+                             <div className="text-[10px] font-black text-primary/90 uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity">
+                               View Case →
+                             </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            ) : null}
+          </section>
+          <AppleScrollFeatures />
+        </main>
+      </div>
+
+      <div className="fixed bottom-28 right-4 z-40 flex flex-col gap-3">
         <Link to="/create-recipe">
-          <Button 
-            size="sm" 
-            className={`py-3 bg-yellow-200 text-yellow-800 hover:bg-yellow-300 active:bg-yellow-400 shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 ease-in-out rounded-full touch-manipulation ${
-              isExpanded 
-                ? 'gap-2 px-4 min-w-[140px] sm:min-w-[160px] justify-start' 
-                : 'w-14 h-14 p-0 min-w-0 justify-center items-center'
-            }`}
-          >
-            <Plus className={`w-5 h-5 flex-shrink-0 ${isExpanded ? '' : 'absolute'}`} />
-            <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap ${
-              isExpanded ? 'opacity-100 max-w-[120px]' : 'opacity-0 max-w-0'
-            }`}>
-              Create Recipe
-            </span>
+          <Button className={`bg-white/10 text-white border border-white/20 hover:bg-white/20 rounded-full transition-all ${isExpanded ? 'px-4 min-w-[160px]' : 'w-14 h-14 p-0'}`}>
+            <Plus className="w-5 h-5 flex-shrink-0" />
+            {isExpanded && <span className="ml-2 whitespace-nowrap text-xs font-black uppercase tracking-widest">Create Recipe</span>}
           </Button>
         </Link>
-        
-        {/* What to Cook Button */}
-        <Button
-          onClick={handleWhatToCook}
-          className={`py-3 bg-primary text-primary-foreground font-semibold shadow-xl border-0 hover:scale-105 active:scale-95 transition-all duration-300 ease-in-out rounded-full touch-manipulation ${
-            isExpanded 
-              ? 'gap-2 px-4 min-w-[140px] sm:min-w-[160px] justify-start' 
-              : 'w-14 h-14 p-0 min-w-0 justify-center items-center'
-          }`}
-        >
-          <ChefHat className={`w-5 h-5 flex-shrink-0 ${isExpanded ? '' : 'absolute'}`} />
-          <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap ${
-            isExpanded ? 'opacity-100 max-w-[120px]' : 'opacity-0 max-w-0'
-          }`}>
-            What to Cook
-          </span>
+        <Button onClick={handleWhatToCook} className={`bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 rounded-full transition-all ${isExpanded ? 'px-4 min-w-[160px]' : 'w-14 h-14 p-0'}`}>
+          <ChefHat className="w-5 h-5 flex-shrink-0" />
+          {isExpanded && <span className="ml-2 whitespace-nowrap text-xs font-black uppercase tracking-widest">What to Cook</span>}
         </Button>
       </div>
 
-      {/* Random Recipe Modal */}
       <RandomRecipeModal
-        isOpen={isRandomModalOpen}
-        onClose={handleCloseModal}
-        recipe={randomRecipe}
-        isLoading={isLoadingRandom}
-        onStartCooking={handleStartCooking}
-        onTryAnother={handleTryAnother}
+        isOpen={isRandomModalOpen} onClose={handleCloseModal}
+        recipe={randomRecipe} isLoading={isLoadingRandom}
+        onStartCooking={handleStartCooking} onTryAnother={handleTryAnother}
       />
-
-      {/* Bottom Navigation Bar */}
-      <BottomNavigation />
     </div>
   );
 };

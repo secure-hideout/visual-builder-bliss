@@ -6,14 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import BottomNavigation from "@/components/BottomNavigation";
 import MobileHeader from "@/components/MobileHeader";
 import { Link, useNavigate } from "react-router-dom";
 import { RecipeService, type CreateRecipeRequest, type Ingredient, type Instruction } from "@/api/recipeService";
 import { RECIPE_CATEGORIES, DIFFICULTY_LEVELS, RECIPE_TAGS, CUISINE_TYPES, DIETARY_TYPES, type RecipeCategory, type DifficultyLevel, type RecipeTag, type CuisineType, type DietaryType } from "@/api/config";
 import { toast } from "sonner";
 import InfoIconButton from "../components/ui/InfoIconButton";
-import beingHomeLogo from "/beinghomelogo.jpeg";
+// Removed legacy logo import
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import ImageCropper from "@/components/ImageCropper";
@@ -309,27 +308,19 @@ const CreateRecipePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 pt-14 lg:pt-0" style={{ position: "relative" }}>
+    <div className="min-h-screen bg-transparent pb-28 pt-14 lg:pt-0" style={{ position: "relative" }}>
       {/* Mobile Sticky Header */}
       <MobileHeader />
       
-      <header className="bg-card shadow-card border-b border-border">
+      <header className="bg-black/50 backdrop-blur-2xl shadow-card border-b border-white/10">
         <div className="px-4 py-4">
           {/* Logo and Info Button Row */}
           <div className="flex items-center justify-between mb-4">
             {/* Being Home Logo - Extreme Left */}
             <img 
-              src={beingHomeLogo}
+              src="/beinghomelogo.jpeg"
               alt="Being Home Logo" 
-              className="h-12 sm:h-14 md:h-16 w-12 sm:w-14 md:w-16 object-cover rounded-full"
-              style={{ 
-                transform: 'scale(1.5, 1.5)',
-                transformOrigin: 'left center'
-              }}
-              onError={(e) => {
-                console.error('Logo failed to load from:', beingHomeLogo);
-                e.currentTarget.style.display = 'none';
-              }}
+              className="h-10 sm:h-12 w-10 sm:w-12 object-cover rounded-full border-2 border-primary/50"
             />
             {/* Info Button - Extreme Right */}
             <InfoIconButton />
@@ -341,7 +332,7 @@ const CreateRecipePage = () => {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
-            <h1 className="text-xl font-semibold text-foreground">Create Recipe</h1>
+            <h1 className="text-xl font-semibold text-white">Create Recipe</h1>
           </div>
         </div>
       </header>
@@ -355,7 +346,7 @@ const CreateRecipePage = () => {
               placeholder="Enter recipe name"
               value={formData.name}
               onChange={(e) => updateFormData('name', e.target.value)}
-              className="bg-card border-input"
+              className="bg-black/30 border-white/15 text-white placeholder:text-white/40 backdrop-blur-sm"
               required
             />
           </div>
@@ -368,7 +359,7 @@ const CreateRecipePage = () => {
             
             {/* Selected Categories Display */}
             {formData.categories.length > 0 && (
-              <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-md">
+              <div className="flex flex-wrap gap-2 p-3 bg-white/5 rounded-md border border-white/10">
                 {formData.categories.map((category, index) => (
                   <Badge
                     key={index}
@@ -415,7 +406,7 @@ const CreateRecipePage = () => {
           <div className="space-y-2">
             <Label htmlFor="dietary_type" className="text-foreground font-medium">Dietary Type *</Label>
             <Select value={formData.dietary_type} onValueChange={(value) => updateFormData('dietary_type', value as DietaryType)}>
-              <SelectTrigger className="bg-card border-input">
+              <SelectTrigger className="bg-black/30 border-white/15 text-white placeholder:text-white/40 backdrop-blur-sm">
                 <SelectValue placeholder="Select dietary type" />
               </SelectTrigger>
               <SelectContent>
@@ -449,7 +440,7 @@ const CreateRecipePage = () => {
                 placeholder="https://youtube.com/watch?v=..."
                 value={formData.youtube_url}
                 onChange={(e) => updateFormData('youtube_url', e.target.value)}
-                className="pl-10 bg-card border-input"
+                className="pl-10 bg-black/30 border-white/15 text-white placeholder:text-white/40 backdrop-blur-sm"
               />
             </div>
           </div>
@@ -464,7 +455,7 @@ const CreateRecipePage = () => {
                 min="1"
                 value={formData.cook_time || ''}
                 onChange={(e) => updateFormData('cook_time', parseInt(e.target.value) || 0)}
-                className="bg-card border-input"
+                className="bg-black/30 border-white/15 text-white placeholder:text-white/40 backdrop-blur-sm"
                 required
               />
             </div>
@@ -477,7 +468,7 @@ const CreateRecipePage = () => {
                 min="1"
                 value={formData.servings}
                 onChange={(e) => updateFormData('servings', parseInt(e.target.value) || 1)}
-                className="bg-card border-input"
+                className="bg-black/30 border-white/15 text-white placeholder:text-white/40 backdrop-blur-sm"
                 required
               />
             </div>
@@ -487,7 +478,7 @@ const CreateRecipePage = () => {
             <div className="space-y-2">
               <Label htmlFor="difficulty" className="text-foreground font-medium">Difficulty</Label>
               <Select value={formData.difficulty} onValueChange={(value) => updateFormData('difficulty', value as DifficultyLevel)}>
-                <SelectTrigger className="bg-card border-input">
+                <SelectTrigger className="bg-black/30 border-white/15 text-white placeholder:text-white/40 backdrop-blur-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -500,7 +491,7 @@ const CreateRecipePage = () => {
             <div className="space-y-2">
               <Label htmlFor="cuisine" className="text-foreground font-medium">Cuisine</Label>
               <Select value={formData.cuisine} onValueChange={(value) => updateFormData('cuisine', value as CuisineType)}>
-                <SelectTrigger className="bg-card border-input">
+                <SelectTrigger className="bg-black/30 border-white/15 text-white placeholder:text-white/40 backdrop-blur-sm">
                   <SelectValue placeholder="Select cuisine type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -521,7 +512,7 @@ const CreateRecipePage = () => {
               min="0"
               value={formData.calories}
               onChange={(e) => updateFormData('calories', e.target.value === '' ? '' : parseInt(e.target.value) || '')}
-              className="bg-card border-input"
+              className="bg-black/30 border-white/15 text-white placeholder:text-white/40 backdrop-blur-sm"
             />
           </div>
 
@@ -558,7 +549,7 @@ const CreateRecipePage = () => {
                       placeholder={`Describe step ${instruction.step}...`}
                       value={instruction.description}
                       onChange={(e) => updateInstruction(index, e.target.value)}
-                      className="bg-card border-input flex-1"
+                      className="bg-black/30 border-white/15 text-white placeholder:text-white/40 backdrop-blur-sm flex-1"
                       rows={3}
                     />
                   </div>
@@ -586,7 +577,7 @@ const CreateRecipePage = () => {
             
             {/* Selected Tags Display */}
             {formData.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-md">
+              <div className="flex flex-wrap gap-2 p-3 bg-white/5 rounded-md border border-white/10">
                 {formData.tags.map((tag, index) => (
                   <Badge
                     key={index}
@@ -640,7 +631,7 @@ const CreateRecipePage = () => {
                     handleCustomTagAdd();
                   }
                 }}
-                className="bg-card border-input flex-1"
+                className="bg-black/30 border-white/15 text-white placeholder:text-white/40 backdrop-blur-sm flex-1"
               />
               <Button
                 type="button"
@@ -683,7 +674,6 @@ const CreateRecipePage = () => {
         </div>
       )}
 
-      <BottomNavigation />
     </div>
   );
 };

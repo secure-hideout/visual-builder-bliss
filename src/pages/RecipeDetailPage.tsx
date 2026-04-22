@@ -1,3 +1,4 @@
+import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowLeft, Clock, Users, Youtube, Share2, Eye, Plus, Minus, AlertTriangle, Loader2, ChefHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,13 +8,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import StarRating from "@/components/StarRating";
-import BottomNavigation from "@/components/BottomNavigation";
 import MobileHeader from "@/components/MobileHeader";
 import FavoriteHeartButton from "@/components/ui/FavoriteHeartButton";
 import RatingInput from "@/components/RatingInput";
 import RatingDisplay from "@/components/RatingDisplay";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { RecipeService, type Recipe } from "@/api/recipeService";
 import { toast } from "sonner";
 import { logImageAnalysis, normalizeImageUrl } from "@/utils/imageDebugger";
@@ -30,6 +30,11 @@ const RecipeDetailPage = () => {
   const [issueDescription, setIssueDescription] = useState("");
   const [ratingRefreshTrigger, setRatingRefreshTrigger] = useState(0);
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollY } = useScroll();
+  const heroY = useTransform(scrollY, [0, 400], [0, 80]);  // parallax
+  const heroScale = useTransform(scrollY, [0, 400], [1, 1.08]);
+  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.6]);
 
   // Helper function to convert YouTube URL to embed URL
   const getEmbedUrl = (url: string) => {
@@ -141,7 +146,7 @@ const RecipeDetailPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
           <p className="text-muted-foreground">Loading recipe...</p>
@@ -152,7 +157,7 @@ const RecipeDetailPage = () => {
 
   if (!recipe) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="text-center">
           <p className="text-foreground mb-4">Recipe not found</p>
           <Link to="/recipes">
@@ -165,40 +170,60 @@ const RecipeDetailPage = () => {
 
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-6 pt-14 lg:pt-0">
+    <div className="min-h-screen bg-transparent pb-20 md:pb-6 pt-14 lg:pt-0">
       {/* Mobile Sticky Header */}
       <MobileHeader />
       
-      <div className="relative">
-        {/* Enhanced image with proper loading states and click to view */}
-        <div className="relative w-full">
+      {/* Hero image with Apple-style parallax — moves up as you scroll */}
+      <div ref={heroRef} className="relative overflow-hidden" style={{ height: '56vw', maxHeight: 420 }}>
+        <motion.div
+          style={{ y: heroY, scale: heroScale, opacity: heroOpacity }}
+          className="absolute inset-0"
+        >
           <EnhancedImage
             src={recipe.image_url}
             alt={recipe.name}
-            className="w-full h-full object-cover cursor-pointer hover:opacity-95 transition-opacity duration-200"
+            className="w-full h-full object-cover cursor-pointer"
             fallbackSrc="https://placehold.co/800x400/e2e8f0/64748b?text=Recipe+Image"
             onClick={() => setIsImageViewerOpen(true)}
             showLoadingSpinner={true}
             aspectRatio="video"
           />
-          <div className="absolute top-4 left-4 z-10">
-            <Link to="/recipes">
-              <Button variant="secondary" size="sm" className="bg-card/80 backdrop-blur-sm hover:bg-card">
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
-          <div className="absolute top-4 right-4 z-10">
-            <FavoriteHeartButton recipeId={recipe.recipe_id.toString()} />
-          </div>
+          {/* Gradient overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
+        </motion.div>
+        {/* Back button */}
+        <div className="absolute top-4 left-4 z-10">
+          <Link to="/recipes">
+            <Button variant="secondary" size="sm" className="bg-black/40 backdrop-blur-md text-white border-white/20 hover:bg-black/60">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          </Link>
         </div>
+        <div className="absolute top-4 right-4 z-10">
+          <FavoriteHeartButton recipeId={recipe.recipe_id.toString()} />
+        </div>
+        {/* Recipe name overlaid on hero */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="absolute bottom-4 left-4 right-4 z-10"
+        >
+          <h1 className="text-2xl md:text-4xl font-black text-white leading-tight drop-shadow-lg">{recipe.name}</h1>
+        </motion.div>
       </div>
 
       <main className="px-4 py-6">
-        <div className="mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="mb-6"
+        >
           <div className="flex items-start justify-between mb-2">
-            <h1 className="text-2xl font-bold text-foreground">{recipe.name}</h1>
-            <div className="flex flex-wrap gap-2 justify-end">
+            {/* Title now in hero overlay, showing category badges here */}
+            <div className="flex flex-wrap gap-2">
               {recipe.categories && recipe.categories.length > 0 ? (
                 recipe.categories.map((category, index) => (
                   <Badge key={index} variant="secondary">{category}</Badge>
@@ -271,9 +296,9 @@ const RecipeDetailPage = () => {
               <span className="text-sm">Share</span>
             </button>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-card rounded-lg p-4 mb-6 shadow-card">
+        <div className="bg-black/40 backdrop-blur-md border border-white/5 rounded-lg p-4 mb-6 shadow-card">
           <div className="flex items-center gap-2 text-card-foreground">
             <span className="font-semibold">Nutrition</span>
             <span>-</span>
@@ -342,7 +367,7 @@ const RecipeDetailPage = () => {
 
         {recipe.calories && (
           <div className="mb-6">
-            <div className="bg-card rounded-lg p-4 shadow-card">
+            <div className="bg-black/40 backdrop-blur-md border border-white/5 rounded-lg p-4 shadow-card">
               <h3 className="font-semibold text-card-foreground mb-2">Nutrition</h3>
               <p className="text-muted-foreground">{recipe.calories} calories per serving</p>
               {recipe.cuisine && (
@@ -354,7 +379,7 @@ const RecipeDetailPage = () => {
 
         <section className="mb-8">
           <h2 className="text-xl font-semibold text-foreground mb-4">Ingredients</h2>
-          <div className="bg-card rounded-lg shadow-card overflow-hidden">
+          <div className="bg-black/40 backdrop-blur-md border border-white/5 rounded-lg shadow-card overflow-hidden">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
@@ -366,7 +391,14 @@ const RecipeDetailPage = () => {
                 {recipe.ingredients && recipe.ingredients.map((ingredient, index) => {
                   const scaledQuantity = getScaledQuantity(parseFloat(ingredient.quantity.toString()) || 0, recipe.servings);
                   return (
-                    <tr key={index} className={index % 2 === 0 ? "bg-card" : "bg-accent/10"}>
+                    <motion.tr
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4, delay: index * 0.05 }}
+                      className="border-b border-white/5 bg-transparent"
+                    >
                       <td className="p-3 text-card-foreground capitalize">{ingredient.name}</td>
                       <td className="p-3 text-right text-card-foreground">
                         {!ingredient.quantity || ingredient.quantity === "0" ?
@@ -374,8 +406,8 @@ const RecipeDetailPage = () => {
                           formatQuantity(scaledQuantity, ingredient.unit)
                         }
                       </td>
-                    </tr>
-                  );
+                      </motion.tr>
+                    );
                 })}
               </tbody>
             </table>
@@ -386,29 +418,39 @@ const RecipeDetailPage = () => {
           <h2 className="text-xl font-semibold text-foreground mb-4">Instructions</h2>
           <div className="space-y-4">
             {recipe.instructions && recipe.instructions.map((instruction, index) => (
-              <div key={index} className="flex gap-4 p-4 bg-card rounded-lg shadow-card">
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.5, delay: index * 0.07 }}
+                className="flex gap-4 p-4 bg-black/40 backdrop-blur-md border border-white/5 rounded-lg shadow-card"
+              >
                 <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0">
                   {typeof instruction === 'object' ? instruction.step : index + 1}
                 </div>
                 <p className="text-card-foreground">
                   {typeof instruction === 'object' ? instruction.description : instruction}
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </section>
 
-        <div className="flex gap-3">
-          <Button className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
-            Start Cooking
-          </Button>
-          <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="px-6 gap-2">
-                <AlertTriangle className="w-4 h-4" />
-                Report Issue
-              </Button>
-            </DialogTrigger>
+        {/* CTA Buttons — clearly separated from instructions */}
+        <div className="my-8 p-5 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10">
+          <p className="text-white/50 text-xs uppercase tracking-widest mb-4 font-bold">Ready to cook?</p>
+          <div className="flex gap-3">
+            <Button className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl shadow-[0_4px_24px_rgba(242,101,34,0.35)] hover:shadow-[0_4px_32px_rgba(242,101,34,0.5)] transition-all">
+              🍳 Start Cooking
+            </Button>
+            <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="px-5 gap-2 border-white/15 hover:bg-white/10 text-white rounded-xl">
+                  <AlertTriangle className="w-4 h-4 text-orange-400" />
+                  Report
+                </Button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Report Recipe Issue</DialogTitle>
@@ -448,11 +490,12 @@ const RecipeDetailPage = () => {
                 </div>
               </div>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
 
-        {/* Rating Section */}
-        <section className="mb-8">
+        {/* Rating Section — clearly separated */}
+        <section className="mb-8 pt-2 border-t border-white/5">
           <RatingInput
             recipeId={recipe.recipe_id}
             onRatingSubmitted={() => setRatingRefreshTrigger(prev => prev + 1)}
@@ -468,7 +511,6 @@ const RecipeDetailPage = () => {
         </section>
       </main>
 
-      <BottomNavigation />
 
       {/* Image Viewer Modal */}
       <ImageViewer

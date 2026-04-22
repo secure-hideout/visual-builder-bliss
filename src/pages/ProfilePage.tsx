@@ -11,7 +11,6 @@ import { AuthService } from "@/api/auth";
 import { RecipeService, type RecipeListItem } from "@/api/recipeService";
 import { NotificationService, type Notification } from "@/api/notificationService";
 import { toast } from "sonner";
-import BottomNavigation from "@/components/BottomNavigation";
 import YouTubeShortsCarousel from "@/components/YouTubeShortsCarousel";
 import type { User as UserType } from "@/api/auth";
 
@@ -215,10 +214,10 @@ const ProfilePage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading profile...</p>
+          <p className="text-white/70">Loading profile...</p>
         </div>
       </div>
     );
@@ -226,9 +225,9 @@ const ProfilePage = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="text-center">
-          <p className="text-muted-foreground">Failed to load profile</p>
+          <p className="text-white/70">Failed to load profile</p>
           <Button onClick={() => navigate("/login")} className="mt-4">
             Go to Login
           </Button>
@@ -238,9 +237,9 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24 lg:pb-20">
+    <div className="min-h-screen bg-transparent pb-28 lg:pb-20">
       {/* Header */}
-      <header className="bg-card shadow-sm border-b border-border">
+      <header className="bg-black/50 backdrop-blur-2xl shadow-sm border-b border-white/10">
         <div className="px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -252,7 +251,7 @@ const ProfilePage = () => {
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <h1 className="text-xl font-semibold text-foreground">Profile</h1>
+              <h1 className="text-xl font-semibold text-white">Profile</h1>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -320,7 +319,7 @@ const ProfilePage = () => {
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="mt-6">
-            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+            <div className="bg-black/40 backdrop-blur-md rounded-lg shadow-sm border border-white/10 p-6">
               {/* Profile Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
@@ -328,7 +327,7 @@ const ProfilePage = () => {
                     <User className="w-8 h-8 text-primary" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-foreground">{user.name}</h2>
+                    <h2 className="text-xl font-semibold text-white">{user.name}</h2>
                     <p className="text-muted-foreground flex items-center gap-2">
                       <Phone className="w-4 h-4" />
                       {user.phone_number}
@@ -468,7 +467,7 @@ const ProfilePage = () => {
           <TabsContent value="recipes" className="mt-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold text-foreground">My Recipes</h2>
+                <h2 className="text-2xl font-semibold text-white">My Recipes</h2>
                 <Button onClick={() => navigate('/create-recipe')} className="gap-2">
                   <ChefHat className="w-4 h-4" />
                   Create Recipe
@@ -581,7 +580,7 @@ const ProfilePage = () => {
           <TabsContent value="notifications" className="mt-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold text-foreground">Notifications</h2>
+                <h2 className="text-2xl font-semibold text-white">Notifications</h2>
                 {unreadCount > 0 && (
                   <Badge variant="secondary">
                     {unreadCount} unread
@@ -653,7 +652,6 @@ const ProfilePage = () => {
           </TabsContent>
         </Tabs>
       </main>
-      <BottomNavigation />
     </div>
   );
 };

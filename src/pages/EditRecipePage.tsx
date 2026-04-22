@@ -5,14 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import BottomNavigation from "@/components/BottomNavigation";
 import MobileHeader from "@/components/MobileHeader";
 import { useNavigate, useParams } from "react-router-dom";
 import { RecipeService, type CreateRecipeRequest, type Ingredient, type Instruction, type Recipe } from "@/api/recipeService";
 import { RECIPE_CATEGORIES, DIFFICULTY_LEVELS, CUISINE_TYPES, DIETARY_TYPES, type RecipeCategory, type DifficultyLevel, type CuisineType, type DietaryType } from "@/api/config";
 import { toast } from "sonner";
 import InfoIconButton from "../components/ui/InfoIconButton";
-import beingHomeLogo from "/beinghomelogo.jpeg";
+// Removed legacy logo import
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import ImageCropper from "@/components/ImageCropper";
@@ -371,13 +370,9 @@ const EditRecipePage = () => {
             {/* Left: Logo and Back Button */}
             <div className="flex items-center gap-3">
               <img
-                src={beingHomeLogo}
+                src="/beinghomelogo.jpeg"
                 alt="Being Home Logo"
-                className="h-10 w-10 object-cover rounded-full"
-                onError={(e) => {
-                  console.error('Logo failed to load from:', beingHomeLogo);
-                  e.currentTarget.style.display = 'none';
-                }}
+                className="h-10 w-10 object-cover rounded-full border-2 border-primary/50"
               />
               <Button
                 variant="ghost"
@@ -401,17 +396,9 @@ const EditRecipePage = () => {
         <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <img
-              src={beingHomeLogo}
+              src="/beinghomelogo.jpeg"
               alt="Being Home Logo"
-              className="h-12 sm:h-14 md:h-16 w-12 sm:w-14 md:w-16 object-cover rounded-full"
-              style={{
-                transform: 'scale(1.5, 1.5)',
-                transformOrigin: 'left center'
-              }}
-              onError={(e) => {
-                console.error('Logo failed to load from:', beingHomeLogo);
-                e.currentTarget.style.display = 'none';
-              }}
+              className="h-12 w-12 object-cover rounded-full border-2 border-primary/50"
             />
             <InfoIconButton />
           </div>
@@ -814,7 +801,6 @@ const EditRecipePage = () => {
         </div>
       )}
 
-      <BottomNavigation />
     </div>
   );
 };

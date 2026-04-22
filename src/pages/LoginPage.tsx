@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import BottomNavigation from "@/components/BottomNavigation";
 import { AuthService } from "@/api/auth";
 import { toast } from "sonner";
 
@@ -213,7 +212,6 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
-      <BottomNavigation />
     </div>
   );
 }

@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Loader2, Plus, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import BottomNavigation from "@/components/BottomNavigation";
 import { AuthService } from "@/api/auth";
 import { toast } from "sonner";
 
@@ -255,7 +254,6 @@ export default function RegistrationPage() {
         </div>
       </main>
       
-      <BottomNavigation />
     </div>
   );
 }

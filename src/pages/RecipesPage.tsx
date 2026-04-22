@@ -1,11 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import InfoIconButton from "../components/ui/InfoIconButton";
-import { Search, ArrowLeft, ChefHat, Plus, Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import MainHeader from "../components/MainHeader";
+import { Search, ChefHat, Plus, Loader2, Filter, X, Clock, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import BottomNavigation from "@/components/BottomNavigation";
 import MobileHeader from "@/components/MobileHeader";
 import RecipeCard from "@/components/RecipeCard";
 import RandomRecipeModal from "@/components/RandomRecipeModal";
@@ -13,7 +10,9 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { RecipeService, type RecipeListItem, type RandomRecipeResponse } from "@/api/recipeService";
 import { RECIPE_CATEGORIES, type RecipeCategory } from "@/api/config";
 import { toast } from "sonner";
-import beingHomeLogo from "/beinghomelogo.jpeg";
+import { motion, AnimatePresence } from "framer-motion";
+import CinematicText from "../components/CinematicText";
+import Magnetic from "../components/Magnetic";
 
 const RecipesPage = () => {
   const [searchParams] = useSearchParams();
@@ -25,6 +24,7 @@ const RecipesPage = () => {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [isExpanded, setIsExpanded] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Random recipe modal state
@@ -35,44 +35,76 @@ const RecipesPage = () => {
   const categories = ["All", ...RECIPE_CATEGORIES];
   const dietaryTypes = ["All", "Veg", "Non-Veg", "Egg", "Vegan"];
   
-  // Fetch recipes based on current filters
+  // Debounce search query
   useEffect(() => {
-    fetchRecipes();
-  }, [selectedCategory, selectedDietaryType, searchQuery]);
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500); // 500ms debounce
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
+  // Sync search from URL
+  useEffect(() => {
+    const paramSearch = searchParams.get('search') || '';
+    if (paramSearch !== searchQuery) {
+      setSearchQuery(paramSearch);
+    }
+  }, [searchParams]);
+
+  // Robust Fetching Logic
   const fetchRecipes = async () => {
     try {
       setIsLoading(true);
-
-      // Always use search API with proper parameters
-      const response = await RecipeService.searchRecipes({
-        search: searchQuery.trim() || undefined,
-        meal_type: selectedCategory !== "All" ? selectedCategory as RecipeCategory : undefined,
-        dietary_type: selectedDietaryType !== "All" ? selectedDietaryType : undefined,
-        page: 1,
-        limit: 20
-      });
+      
+      const hasFilters = debouncedSearchQuery.trim() || selectedCategory !== "All" || selectedDietaryType !== "All";
+      
+      let response;
+      if (hasFilters) {
+        // Try Search API
+        response = await RecipeService.searchRecipes({
+          search: debouncedSearchQuery.trim() || undefined,
+          meal_type: selectedCategory !== "All" ? selectedCategory as RecipeCategory : undefined,
+          dietary_type: selectedDietaryType !== "All" ? selectedDietaryType : undefined,
+          page: 1, limit: 30
+        });
+      } else {
+        // Default to main recipes endpoint for maximum robustness
+        response = await RecipeService.getRecipes(1, 30);
+      }
 
       if (response.success && response.data) {
         setRecipes(response.data);
       } else {
-        toast.error("Failed to load recipes");
         setRecipes([]);
       }
     } catch (error) {
       console.error('Error fetching recipes:', error);
-      toast.error("Failed to load recipes");
       setRecipes([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSearch = () => {
+  useEffect(() => {
     fetchRecipes();
-  };
+  }, [selectedCategory, selectedDietaryType, debouncedSearchQuery]);
 
-  // Random recipe modal handlers
+  // Floating Button Expansion Logic (Safari optimized)
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > 100) {
+        if (currentScrollY > lastScrollY) setIsExpanded(true);
+        else if (currentScrollY < lastScrollY - 20) setIsExpanded(false);
+      } else {
+        setIsExpanded(false);
+      }
+      setLastScrollY(currentScrollY);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
   const handleWhatToCook = async () => {
     setIsRandomModalOpen(true);
     await fetchRandomRecipe();
@@ -82,14 +114,9 @@ const RecipesPage = () => {
     setIsLoadingRandom(true);
     try {
       const response = await RecipeService.getRandomRecipe();
-      if (response.success && response.data) {
-        setRandomRecipe(response.data);
-      } else {
-        toast.error("Failed to get random recipe");
-      }
+      if (response.success && response.data) setRandomRecipe(response.data);
     } catch (error) {
       console.error('Error fetching random recipe:', error);
-      toast.error("Failed to get random recipe");
     } finally {
       setIsLoadingRandom(false);
     }
@@ -105,293 +132,147 @@ const RecipesPage = () => {
     await fetchRandomRecipe();
   };
 
-  const handleCloseModal = () => {
-    setIsRandomModalOpen(false);
-    setRandomRecipe(null);
-  };
-
-  useEffect(() => {
-    let ticking = false;
-    
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY;
-          const scrollDiff = Math.abs(currentScrollY - lastScrollY);
-          
-          // Only process significant scroll changes to avoid Safari momentum issues
-          if (scrollDiff > 5) {
-            if (currentScrollY > lastScrollY && currentScrollY > 50) {
-              // Scrolling down - expand buttons
-              setIsExpanded(true);
-              
-              // Clear existing timeout when actively scrolling down
-              if (scrollTimeoutRef.current) {
-                clearTimeout(scrollTimeoutRef.current);
-              }
-              
-              // Set timeout to contract after 4 seconds for Safari compatibility
-              scrollTimeoutRef.current = setTimeout(() => {
-                setIsExpanded(false);
-              }, 4000);
-            } else if (currentScrollY < lastScrollY && scrollDiff > 10) {
-              // Scrolling up with significant movement - contract buttons
-              setIsExpanded(false);
-              
-              // Clear timeout when scrolling up
-              if (scrollTimeoutRef.current) {
-                clearTimeout(scrollTimeoutRef.current);
-              }
-            }
-            
-            setLastScrollY(currentScrollY);
-          }
-          
-          ticking = false;
-        });
-        
-        ticking = true;
-      }
-    };
-
-    // Add touchstart and touchmove for iOS Safari
-    const handleTouchStart = () => {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-    };
-
-    const handleTouchEnd = () => {
-      // Delay to allow momentum scrolling to complete
-      setTimeout(() => {
-        if (window.scrollY > 50) {
-          setIsExpanded(true);
-          scrollTimeoutRef.current = setTimeout(() => {
-            setIsExpanded(false);
-          }, 4000);
-        }
-      }, 100);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd, { passive: true });
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchend', handleTouchEnd);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-    };
-  }, [lastScrollY]);
-
   return (
-    <div
-      className="min-h-screen bg-background pb-24 lg:pb-20 pt-14 lg:pt-0"
-      style={{
-        position: "relative",
-        WebkitOverflowScrolling: "touch"
-      }}
-    >
-      {/* Mobile Sticky Header */}
+    <div className="min-h-screen bg-transparent pb-32">
       <MobileHeader />
-
-      <header className="bg-card shadow-card border-b border-border">
-        <div className="px-4 py-4">
-          {/* Logo and Info Button Row */}
-          <div className="flex items-center justify-between mb-6">
-            {/* Being Home Logo - Extreme Left */}
-            <img 
-              src={beingHomeLogo}
-              alt="Being Home Logo" 
-              className="h-12 sm:h-14 md:h-16 w-12 sm:w-14 md:w-16 object-cover rounded-full"
-              style={{ 
-                transform: 'scale(1.5, 1.5)',
-                transformOrigin: 'left center'
-              }}
-              onError={(e) => {
-                console.error('Logo failed to load from:', beingHomeLogo);
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-            {/* Info Button - Extreme Right */}
-            <InfoIconButton />
-          </div>
-          
-          <div className="flex items-center gap-3 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Search recipes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSearch();
-                  }
-                }}
-                className="pl-10 pr-4 bg-background border-input"
-              />
-            </div>
-            
-            {/* Dietary Preference Dropdown */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Select value={selectedDietaryType} onValueChange={setSelectedDietaryType}>
-                <SelectTrigger className="w-32 h-8 text-xs">
-                  <SelectValue placeholder="Diet" />
-                </SelectTrigger>
-                <SelectContent>
-                  {dietaryTypes.map((type) => (
-                    <SelectItem key={type} value={type} className="text-xs">
-                      <div className="flex items-center gap-2">
-                        {type === "Veg" && (
-                          <div className="w-3 h-3 border border-green-600 bg-white flex items-center justify-center">
-                            <div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>
-                          </div>
-                        )}
-                        {type === "Non-Veg" && (
-                          <div className="w-3 h-3 border border-red-600 bg-white flex items-center justify-center">
-                            <div className="w-1.5 h-1.5 bg-red-600 rounded-full"></div>
-                          </div>
-                        )}
-                        {type === "Vegan" && (
-                          <div className="w-3 h-3 border border-green-700 bg-white flex items-center justify-center">
-                            <div className="w-1.5 h-1.5 bg-green-700 rounded-full"></div>
-                          </div>
-                        )}
-                        {type === "Egg" && (
-                          <div className="w-3 h-3 border border-yellow-600 bg-white flex items-center justify-center">
-                            <div className="w-1.5 h-1.5 bg-yellow-600 rounded-full"></div>
-                          </div>
-                        )}
-                        <span>{type}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          {/* Category Filter */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-foreground">Categories</h3>
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {categories.map((category) => (
-                <Badge
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "secondary"}
-                  className={`cursor-pointer whitespace-nowrap transition-colors ${
-                    selectedCategory === category
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                      : "hover:bg-secondary/80"
-                  }`}
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-        </div>
-      </header>
-
-      <main className="px-4 py-6">
-        <div className="mb-6">
-          <p className="text-muted-foreground">
-            {isLoading ? 'Loading...' : `${recipes.length} recipe${recipes.length !== 1 ? 's' : ''} found`}
-          </p>
-        </div>
-
-        {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <span className="ml-2 text-muted-foreground">Loading recipes...</span>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recipes.map((recipe) => (
-                <RecipeCard
-                  key={recipe.recipe_id}
-                  recipe_id={recipe.recipe_id}
-                  name={recipe.name}
-                  image_url={recipe.image_url}
-                  rating={recipe.rating}
-                  cook_time={recipe.cook_time}
-                  views={recipe.views}
-                  is_popular={recipe.is_popular}
-                />
-              ))}
-            </div>
-
-            {recipes.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">
-                  {searchQuery ? `No recipes found for "${searchQuery}"` : "No recipes found for this category."}
-                </p>
-              </div>
-            )}
-          </>
-        )}
-      </main>
-
-      {/* Floating Buttons */}
-      <div className="fixed bottom-20 right-2 sm:right-4 z-40 flex flex-col gap-3">
-        {/* Create Recipe Button */}
-        <Link to="/create-recipe">
-          <Button 
-            size="sm" 
-            className={`py-3 bg-yellow-200 text-yellow-800 hover:bg-yellow-300 active:bg-yellow-400 shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 ease-in-out rounded-full touch-manipulation ${
-              isExpanded 
-                ? 'gap-2 px-4 min-w-[140px] sm:min-w-[160px] justify-start' 
-                : 'w-14 h-14 p-0 min-w-0 justify-center items-center'
-            }`}
-          >
-            <Plus className={`w-5 h-5 flex-shrink-0 ${isExpanded ? '' : 'absolute'}`} />
-            <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap ${
-              isExpanded ? 'opacity-100 max-w-[120px]' : 'opacity-0 max-w-0'
-            }`}>
-              Create Recipe
-            </span>
-          </Button>
-        </Link>
-        
-        {/* What to Cook Button */}
-        <Button
-          onClick={handleWhatToCook}
-          className={`py-3 bg-primary text-primary-foreground font-semibold shadow-xl border-0 hover:scale-105 active:scale-95 transition-all duration-300 ease-in-out rounded-full touch-manipulation ${
-            isExpanded
-              ? 'gap-2 px-4 min-w-[140px] sm:min-w-[160px] justify-start'
-              : 'w-14 h-14 p-0 min-w-0 justify-center items-center'
-          }`}
-        >
-          <ChefHat className={`w-5 h-5 flex-shrink-0 ${isExpanded ? '' : 'absolute'}`} />
-          <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap ${
-            isExpanded ? 'opacity-100 max-w-[120px]' : 'opacity-0 max-w-0'
-          }`}>
-            What to Cook
-          </span>
-        </Button>
+      
+      {/* Editorial Depth Layer */}
+      <div className="fixed top-24 left-6 pointer-events-none select-none z-0 opacity-[0.02]">
+        <h1 className="text-[15vw] font-black uppercase leading-none tracking-tighter text-white">
+          COLLECTION
+        </h1>
       </div>
 
-      {/* Random Recipe Modal */}
-      <RandomRecipeModal
-        isOpen={isRandomModalOpen}
-        onClose={handleCloseModal}
-        recipe={randomRecipe}
-        isLoading={isLoadingRandom}
-        onStartCooking={handleStartCooking}
-        onTryAnother={handleTryAnother}
-      />
+      <MainHeader>
+        <div className="flex flex-col gap-6 py-4">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-3">
+                <div className="h-[1px] w-8 bg-primary/60"></div>
+                <span className="text-primary/70 text-[9px] font-black uppercase tracking-[0.4em]">Explore Collections</span>
+              </div>
+              <div className="overflow-hidden">
+                <motion.h1 
+                  initial={{ y: "100%" }} animate={{ y: 0 }} transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                  className="text-4xl sm:text-6xl md:text-9xl font-black text-white uppercase tracking-tighter leading-[0.85]"
+                >
+                  ALL <span className="text-transparent bg-clip-text bg-gradient-to-b from-primary via-primary/80 to-primary/40">RECIPES</span>
+                </motion.h1>
+              </div>
+            </div>
+            
+            {/* Standard Premium Filter Bar */}
+            <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-2xl backdrop-blur-3xl w-full md:w-auto overflow-hidden">
+              <div className="relative flex-1 md:w-64">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 w-4 h-4" />
+                <input
+                  type="text" placeholder="Search..." value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-10 pl-11 pr-4 bg-transparent text-white placeholder:text-white/25 text-sm focus:outline-none"
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <div className="h-6 w-px bg-white/10 hidden md:block" />
+              <Select value={selectedDietaryType} onValueChange={setSelectedDietaryType}>
+                <SelectTrigger className="w-28 h-10 border-none bg-transparent text-white text-xs font-bold focus:ring-0">
+                  <SelectValue placeholder="Diet" />
+                </SelectTrigger>
+                <SelectContent className="bg-charcoal/90 backdrop-blur-xl border-white/10">
+                  {dietaryTypes.map((type) => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <button onClick={fetchRecipes} className="h-10 w-10 flex items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/20 transition-transform active:scale-95">
+                <Filter className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
 
-      {/* Bottom Navigation Bar */}
-      <BottomNavigation />
+          {/* Category Chips */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
+            {categories.map((category) => (
+              <button
+                key={category} onClick={() => setSelectedCategory(category)}
+                className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all border whitespace-nowrap ${
+                  selectedCategory === category 
+                    ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" 
+                    : "bg-white/5 text-white/40 border-white/5 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+      </MainHeader>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-10 relative z-10">
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="aspect-[4/3] rounded-3xl bg-white/5 border border-white/5 animate-pulse" />
+              ))}
+            </motion.div>
+          ) : recipes.length > 0 ? (
+            <motion.div key="grid" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {recipes.map((recipe, i) => (
+                  <motion.div
+                    key={recipe.recipe_id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ duration: 0.8, ease: [0.215, 0.61, 0.355, 1], delay: (i % 6) * 0.08 }}
+                  >
+                    <RecipeCard {...recipe} />
+                  </motion.div>
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-32 text-center">
+              <div className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-8">
+                <ChefHat className="w-10 h-10 text-white/20" />
+              </div>
+              <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-2">No Recipes Found</h3>
+              <p className="text-white/40 font-light max-w-sm">We couldn't find any recipes matching your filters. Try adjusting your search or category.</p>
+              <Button onClick={() => { setSelectedCategory("All"); setSelectedDietaryType("All"); setSearchQuery(""); }} variant="link" className="mt-6 text-primary uppercase text-xs font-black tracking-widest">Clear All Filters</Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+
+      {/* Floating Action Buttons */}
+      <div className="fixed bottom-28 right-6 z-40 flex flex-col gap-3">
+        <Link to="/create-recipe">
+          <Button className={`bg-white/10 text-white border border-white/20 hover:bg-white/20 rounded-full transition-all duration-500 shadow-2xl backdrop-blur-xl ${isExpanded ? 'px-6 min-w-[200px] h-14' : 'w-14 h-14 p-0'}`}>
+            <Plus className="w-5 h-5 flex-shrink-0" />
+            <AnimatePresence>
+              {isExpanded && (
+                <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="ml-3 text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap">Create Recipe</motion.span>
+              )}
+            </AnimatePresence>
+          </Button>
+        </Link>
+        <Magnetic strength={0.3}>
+          <Button onClick={handleWhatToCook} className={`bg-primary text-white hover:bg-primary/90 rounded-full transition-all duration-500 shadow-2xl shadow-primary/20 ${isExpanded ? 'px-6 min-w-[200px] h-14' : 'w-14 h-14 p-0'}`}>
+            <ChefHat className="w-5 h-5 flex-shrink-0" />
+            <AnimatePresence>
+              {isExpanded && (
+                <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="ml-3 text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap">What to Cook</motion.span>
+              )}
+            </AnimatePresence>
+          </Button>
+        </Magnetic>
+      </div>
+
+      <RandomRecipeModal
+        isOpen={isRandomModalOpen} onClose={() => setIsRandomModalOpen(false)}
+        recipe={randomRecipe} isLoading={isLoadingRandom}
+        onStartCooking={handleStartCooking} onTryAnother={handleTryAnother}
+      />
     </div>
   );
 };

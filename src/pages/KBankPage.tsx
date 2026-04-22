@@ -1,11 +1,11 @@
 import { ArrowLeft, Utensils, Leaf, Fish, Cookie, Soup, Users, Heart, Sprout } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import BottomNavigation from "@/components/BottomNavigation";
 import MobileHeader from "@/components/MobileHeader";
 import { Link } from "react-router-dom";
-import InfoIconButton from "../components/ui/InfoIconButton";
-import beingHomeLogo from "/beinghomelogo.jpeg";
+import MainHeader from "../components/MainHeader";
+import { motion } from "framer-motion";
+
 
 const KBankPage = () => {
   const foodCategories = [
@@ -15,8 +15,8 @@ const KBankPage = () => {
       description: "Essential carbohydrates for energy and fiber for digestive health",
       icon: <Soup className="w-8 h-8" />,
       examples: ["Rice", "Wheat", "Oats", "Barley", "Quinoa"],
-      color: "bg-amber-50 border-amber-200",
-      iconColor: "text-amber-600"
+      color: "bg-primary/5 border-primary/20",
+      iconColor: "text-primary"
     },
     {
       id: "2",
@@ -24,8 +24,8 @@ const KBankPage = () => {
       description: "Rich in vitamins, minerals, and antioxidants for overall health",
       icon: <Leaf className="w-8 h-8" />,
       examples: ["Spinach", "Carrots", "Apples", "Berries", "Citrus"],
-      color: "bg-green-50 border-green-200",
-      iconColor: "text-green-600"
+      color: "bg-primary/5 border-primary/20",
+      iconColor: "text-primary"
     },
     {
       id: "3",
@@ -33,8 +33,8 @@ const KBankPage = () => {
       description: "Building blocks for muscle growth and tissue repair",
       icon: <Fish className="w-8 h-8" />,
       examples: ["Fish", "Chicken", "Eggs", "Legumes", "Nuts"],
-      color: "bg-blue-50 border-blue-200",
-      iconColor: "text-blue-600"
+      color: "bg-primary/5 border-primary/20",
+      iconColor: "text-primary"
     },
     {
       id: "4",
@@ -42,8 +42,8 @@ const KBankPage = () => {
       description: "Calcium and protein sources for bone health and nutrition",
       icon: <Cookie className="w-8 h-8" />,
       examples: ["Milk", "Cheese", "Yogurt", "Almond Milk", "Tofu"],
-      color: "bg-purple-50 border-purple-200",
-      iconColor: "text-purple-600"
+      color: "bg-primary/5 border-primary/20",
+      iconColor: "text-primary"
     },
     {
       id: "5",
@@ -51,8 +51,8 @@ const KBankPage = () => {
       description: "Essential fatty acids for brain function and hormone production",
       icon: <Utensils className="w-8 h-8" />,
       examples: ["Avocado", "Olive Oil", "Nuts", "Seeds", "Fatty Fish"],
-      color: "bg-orange-50 border-orange-200",
-      iconColor: "text-orange-600"
+      color: "bg-primary/5 border-primary/20",
+      iconColor: "text-primary"
     }
   ];
 
@@ -67,8 +67,8 @@ const KBankPage = () => {
       benefits: ["Lower risk of heart disease", "Better weight management", "Higher fiber intake", "Reduced environmental impact"],
       challenges: ["Potential B12, iron deficiencies", "Requires nutritional planning"],
       examples: ["Vegetable stir-fry with tofu", "Cheese pizza with veggies", "Lentil soup"],
-      color: "bg-green-50 border-green-200",
-      iconColor: "text-green-600"
+      color: "bg-primary/5 border-primary/20",
+      iconColor: "text-primary"
     },
     {
       id: "2",
@@ -80,8 +80,8 @@ const KBankPage = () => {
       benefits: ["High-quality complete proteins", "Essential amino acids", "Vitamin B12", "Iron and zinc"],
       challenges: ["Higher disease risk if over-reliant on processed meats", "Environmental concerns"],
       examples: ["Grilled chicken salad", "Fish curry with rice", "Beef stir-fry"],
-      color: "bg-orange-50 border-orange-200",
-      iconColor: "text-orange-600"
+      color: "bg-primary/5 border-primary/20",
+      iconColor: "text-primary"
     },
     {
       id: "3",
@@ -93,8 +93,8 @@ const KBankPage = () => {
       benefits: ["Heart health", "Weight loss", "Lower cholesterol", "Environmental friendly", "Animal welfare"],
       challenges: ["Risk of B12, calcium deficiencies", "Social challenges", "Requires supplements"],
       examples: ["Avocado toast", "Chickpea salad with quinoa", "Vegan stir-fry with tofu"],
-      color: "bg-emerald-50 border-emerald-200",
-      iconColor: "text-emerald-600"
+      color: "bg-primary/5 border-primary/20",
+      iconColor: "text-primary"
     },
     {
       id: "4",
@@ -106,8 +106,8 @@ const KBankPage = () => {
       benefits: ["Heart-healthy omega-3s", "High protein", "Easier than strict vegetarianism"],
       challenges: ["Mercury concerns in some fish", "Not fully plant-based"],
       examples: ["Grilled salmon with veggies", "Shrimp pasta", "Tuna salad sandwich"],
-      color: "bg-blue-50 border-blue-200",
-      iconColor: "text-blue-600"
+      color: "bg-primary/5 border-primary/20",
+      iconColor: "text-primary"
     },
     {
       id: "5",
@@ -119,8 +119,8 @@ const KBankPage = () => {
       benefits: ["Plant health benefits with variety", "Easier to sustain", "Environmentally better"],
       challenges: ["Can be vague", "Requires mindful choices"],
       examples: ["Veggie burger most days", "Occasional chicken stir-fry"],
-      color: "bg-purple-50 border-purple-200",
-      iconColor: "text-purple-600"
+      color: "bg-primary/5 border-primary/20",
+      iconColor: "text-primary"
     }
   ];
 
@@ -132,205 +132,203 @@ const KBankPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-24 lg:pb-20 pt-14 lg:pt-0" style={{ position: "relative" }}>
+    <div className="min-h-screen bg-transparent pb-28 lg:pb-20 pt-14 lg:pt-0" style={{ position: "relative" }}>
       {/* Mobile Sticky Header */}
       <MobileHeader />
 
-      <header className="bg-card shadow-card border-b border-border">
-        <div className="px-4 py-4">
-          {/* Logo and Info Button Row */}
-          <div className="flex items-center justify-between mb-4">
-            {/* Being Home Logo - Extreme Left */}
-            <img 
-              src={beingHomeLogo}
-              alt="Being Home Logo" 
-              className="h-12 sm:h-14 md:h-16 w-12 sm:w-14 md:w-16 object-cover rounded-full"
-              style={{ 
-                transform: 'scale(1.5, 1.5)',
-                transformOrigin: 'left center'
-              }}
-              onError={(e) => {
-                console.error('Logo failed to load from:', beingHomeLogo);
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-            {/* Info Button - Extreme Right */}
-            <InfoIconButton />
-          </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-10 md:pt-20">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          className="relative overflow-hidden rounded-[3rem] p-12 md:p-24 text-center border border-white/10 shadow-3xl bg-black/40 backdrop-blur-3xl group light-sweep"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-black/40 to-black z-0" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10" />
           
-          <h1 className="text-xl font-semibold text-foreground mb-2">K-Bank</h1>
-          <p className="text-muted-foreground text-sm">
-            Explore different types of foods and their nutritional benefits
-          </p>
-        </div>
-      </header>
+          <div className="relative z-20 flex flex-col items-center">
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-4 mb-10"
+            >
+              <div className="h-[1px] w-12 bg-primary/40"></div>
+              <span className="text-primary/90 tracking-[0.4em] text-[10px] font-black uppercase">Culinary Encyclopedia</span>
+              <div className="h-[1px] w-12 bg-primary/40"></div>
+            </motion.div>
 
-      <main className="px-4 py-6 space-y-6">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-2">Understanding Food Habits</h2>
-          <p className="text-muted-foreground">
-            Different dietary preferences based on health, ethical, environmental, or cultural reasons
-          </p>
-        </div>
+            <motion.h1 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl sm:text-6xl md:text-9xl font-black text-white uppercase tracking-tighter leading-[0.85] mb-12"
+          >
+            Knowledge <br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-b from-primary via-primary/80 to-primary/40">Bank</span>
+          </motion.h1>
+            
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-white/60 text-sm md:text-lg max-w-2xl font-medium leading-relaxed"
+            >
+              A curated taxonomy of nutritional wisdom, food habits, and culinary classifications. <br className="hidden md:block"/>
+              Everything you need to master your journey with <span className="text-primary/90 font-black">BeingHomeFoods</span>.
+            </motion.p>
+          </div>
+        </motion.div>
+      </div>
 
-        <div className="grid gap-6">
-          {foodHabits.map((habit) => (
-            <Card key={habit.id} className={`${habit.color} transition-all hover:shadow-md`}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start gap-4">
-                  <div className={`${habit.iconColor} flex-shrink-0`}>
-                    {habit.icon}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-10 space-y-12 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {foodHabits.map((habit, idx) => (
+            <motion.div
+              key={habit.id}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: idx * 0.1 }}
+              viewport={{ once: true }}
+              className="relative overflow-hidden rounded-[2.5rem] h-[450px] group light-sweep border border-white/10 shadow-2xl bg-gradient-to-br from-primary/30 via-black/80 to-black"
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
+              
+              <div className="absolute inset-0 flex items-center justify-center opacity-20 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
+                <div className="text-white scale-[3]">
+                   {habit.icon}
+                </div>
+              </div>
+
+              <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10 z-20 space-y-6">
+                <div>
+                  <span className="inline-block px-4 py-1.5 rounded-full bg-primary text-white text-[10px] font-black uppercase mb-4">BH-{habit.id.padStart(2, '0')}</span>
+                  <h3 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter leading-none group-hover:text-primary transition-colors">
+                    {habit.title}
+                  </h3>
+                </div>
+
+                <p className="text-sm text-white/90 leading-relaxed font-medium line-clamp-3">
+                  {habit.description}
+                </p>
+
+                <div className="pt-6 border-t border-white/10 space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    {habit.included.slice(0, 4).map((food, i) => (
+                      <span key={i} className="text-[10px] font-bold uppercase tracking-widest text-primary/80 px-3 py-1 bg-primary/10 rounded-full border border-primary/20">
+                        {food}
+                      </span>
+                    ))}
                   </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-lg font-semibold text-foreground mb-2">
-                      {habit.title}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {habit.description}
+                  
+                  <div className="space-y-2">
+                    {habit.benefits.slice(0, 2).map((b, i) => (
+                      <div key={i} className="flex items-center gap-3 text-white/70 text-[11px] font-bold italic">
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                        {b}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+        
+        <div className="pt-24 lg:pt-32 border-t border-white/10">
+           <div className="max-w-3xl mb-16">
+              <p className="text-primary text-[10px] font-black uppercase tracking-[0.4em] mb-4">Extended Taxonomy</p>
+              <h3 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none mb-6">Specialized Dietary Focus</h3>
+              <p className="text-white/70 text-lg font-medium leading-relaxed italic">
+                Niche nutritional protocols designed for specific metabolic and therapeutic requirements.
+              </p>
+           </div>
+           
+           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {otherDiets.map((diet, index) => (
+                <div key={index} className="relative overflow-hidden p-8 rounded-[2rem] bg-white/[0.02] border border-white/10 hover:border-primary/40 transition-all group flex flex-col gap-4 min-h-[200px] justify-end">
+                   <div className="absolute top-6 right-6 text-4xl font-black text-white/[0.03] group-hover:text-primary/10 transition-colors">0{index + 6}</div>
+                   <div className="space-y-2 relative z-10">
+                      <h4 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight group-hover:text-primary transition-colors">{diet.name}</h4>
+                      <p className="text-xs md:text-sm text-white/70 leading-relaxed font-medium line-clamp-2 italic">{diet.description}</p>
+                   </div>
+                   <div className="w-8 h-[2px] bg-primary group-hover:w-full transition-all duration-700" />
+                </div>
+              ))}
+           </div>
+        </div>
+
+        <div className="pt-32 pb-12">
+          <div className="flex flex-col items-center text-center mb-16">
+            <p className="text-primary text-[10px] font-black uppercase tracking-[0.4em] mb-4">Nutritional Science</p>
+            <h2 className="text-5xl md:text-8xl font-black text-white uppercase tracking-tighter leading-none mb-4">Food Categories</h2>
+            <div className="w-24 h-[1px] bg-primary/40 mt-8" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {foodCategories.map((category, idx) => (
+              <motion.div 
+                key={category.id} 
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: idx * 0.1 }}
+                viewport={{ once: true }}
+                className="group relative overflow-hidden rounded-[2.5rem] p-8 border border-white/10 bg-black/40 backdrop-blur-2xl hover:border-primary/40 transition-all duration-500"
+              >
+                <div className="flex flex-col items-center text-center space-y-6">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-black transition-all duration-500">
+                    {category.icon}
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-black text-white uppercase tracking-tight">
+                      {category.title}
+                    </h3>
+                    <p className="text-sm text-white/80 font-medium leading-relaxed">
+                      {category.description}
                     </p>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="font-medium text-foreground text-sm mb-2">Included Foods:</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {habit.included.map((food, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-green-100 border border-green-200 rounded text-xs text-green-800"
-                        >
-                          {food}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-foreground text-sm mb-2">Excluded Foods:</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {habit.excluded.map((food, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-red-100 border border-red-200 rounded text-xs text-red-800"
-                        >
-                          {food}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="font-medium text-foreground text-sm mb-2">Benefits:</h4>
-                    <ul className="text-xs text-muted-foreground space-y-1">
-                      {habit.benefits.map((benefit, index) => (
-                        <li key={index}>• {benefit}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-foreground text-sm mb-2">Challenges:</h4>
-                    <ul className="text-xs text-muted-foreground space-y-1">
-                      {habit.challenges.map((challenge, index) => (
-                        <li key={index}>• {challenge}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium text-foreground text-sm mb-2">Example Meals:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {habit.examples.map((example, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-background/60 border border-border rounded-full text-xs text-foreground"
-                      >
-                        {example}
+                  
+                  <div className="flex flex-wrap justify-center gap-3 pt-4">
+                    {category.examples.map((ex, i) => (
+                      <span key={i} className="text-[10px] font-black uppercase tracking-widest text-primary/80 px-3 py-1 bg-primary/10 rounded-full">
+                        {ex}
                       </span>
                     ))}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <div className="mt-8 p-6 bg-card border border-border rounded-lg">
-          <h3 className="text-lg font-semibold text-foreground mb-3">
-            Other Notable Dietary Approaches
-          </h3>
-          <div className="grid sm:grid-cols-2 gap-4">
-            {otherDiets.map((diet, index) => (
-              <div key={index} className="p-4 bg-muted/30 rounded-lg border border-border">
-                <h4 className="font-medium text-foreground mb-2">{diet.name}</h4>
-                <p className="text-sm text-muted-foreground">{diet.description}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
 
-        <div className="text-center mb-8 mt-12">
-          <h2 className="text-2xl font-bold text-foreground mb-2">Food Categories</h2>
-          <p className="text-muted-foreground">
-            Discover the essential food groups for a balanced and healthy diet
-          </p>
-        </div>
-
-        <div className="grid gap-6">
-          {foodCategories.map((category) => (
-            <Card key={category.id} className={`${category.color} transition-all hover:shadow-md`}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start gap-4">
-                  <div className={`${category.iconColor} flex-shrink-0`}>
-                    {category.icon}
-                  </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-lg font-semibold text-foreground mb-2">
-                      {category.title}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {category.description}
-                    </p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-2">
-                  <h4 className="font-medium text-foreground text-sm">Examples:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {category.examples.map((example, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-background/60 border border-border rounded-full text-xs text-foreground"
-                      >
-                        {example}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <Heart className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <h4 className="font-medium text-yellow-800 mb-2">Important Note</h4>
-              <p className="text-sm text-yellow-700">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          className="mt-20 p-8 md:p-12 rounded-[2.5rem] bg-gradient-to-br from-primary/20 via-black/40 to-black border border-white/10 shadow-2xl relative overflow-hidden group light-sweep"
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10" />
+          
+          <div className="relative z-20 flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
+            <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center text-primary animate-pulse flex-shrink-0">
+              <Heart className="w-8 h-8" />
+            </div>
+            <div className="space-y-4">
+              <h4 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter">Nutritional Guidance</h4>
+              <p className="text-sm md:text-base text-white/70 font-medium leading-relaxed max-w-4xl italic">
                 Individual nutritional needs vary based on age, health conditions, and activity level. 
                 Please consult with a healthcare professional or registered dietitian before making 
                 major dietary changes to ensure the approach is right for your specific situation.
               </p>
             </div>
+            <div className="hidden lg:block h-12 w-[1px] bg-white/10 mx-4" />
+            <div className="flex-shrink-0">
+               <span className="text-[10px] font-black text-primary/80 uppercase tracking-[0.4em]">Stay Healthy First</span>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </main>
 
       {/* Bottom Navigation Bar */}
-      <BottomNavigation />
     </div>
   );
 };

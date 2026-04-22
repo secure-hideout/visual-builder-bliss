@@ -1,5 +1,4 @@
-import React from "react";
-import infoImg from "../../assets/info.png";
+import { Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function InfoIconButton({ onClick }: { onClick?: () => void }) {
@@ -7,15 +6,11 @@ export default function InfoIconButton({ onClick }: { onClick?: () => void }) {
   return (
     <button
       onClick={onClick ? onClick : () => navigate('/info')}
-      aria-label="Information"
-      className="rounded-full shadow p-2 mr-2 flex items-center justify-center touch-manipulation active:scale-95 transition-transform duration-150"
-      style={{ width: 44, height: 44, background: 'transparent' }}
+      aria-label="About BeingHomeFoods"
+      title="About"
+      className="group relative flex items-center justify-center w-9 h-9 rounded-full transition-all duration-200 active:scale-90 bg-white/5 border border-white/20 backdrop-blur-md hover:border-primary/50 hover:bg-white/10"
     >
-      <img
-        src={infoImg}
-        alt="Info"
-        className="w-6 h-6 sm:w-8 sm:h-8 object-contain block mx-auto"
-      />
+      <Info className="w-4 h-4 text-white group-hover:text-primary transition-colors" strokeWidth={2.5} />
     </button>
   );
 }

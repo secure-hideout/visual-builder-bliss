@@ -2,7 +2,6 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import BottomNavigation from "@/components/BottomNavigation";
 
 export default function PrivacyPage() {
   const navigate = useNavigate();
@@ -149,7 +148,6 @@ export default function PrivacyPage() {
         </div>
       </main>
 
-      <BottomNavigation />
     </div>
   );
 }

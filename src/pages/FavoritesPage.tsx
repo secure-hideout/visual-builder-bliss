@@ -1,11 +1,9 @@
 import { Heart, Loader2, Search, ChefHat, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import BottomNavigation from "@/components/BottomNavigation";
 import MobileHeader from "@/components/MobileHeader";
 import RecipeCard from "@/components/RecipeCard";
 import { Link } from "react-router-dom";
 import InfoIconButton from "../components/ui/InfoIconButton";
-import beingHomeLogo from "/beinghomelogo.jpeg";
 import { useState, useEffect } from "react";
 import { FavoritesService, type FavoriteItem } from "@/api/favoritesService";
 import { AuthService } from "@/api/auth";
@@ -57,7 +55,7 @@ const FavoritesPage = () => {
           <div className="flex items-center justify-between mb-4">
             {/* Being Home Logo - Extreme Left */}
             <img 
-              src={beingHomeLogo}
+              src="/beinghomelogo.jpeg"
               alt="Being Home Logo" 
               className="h-12 sm:h-14 md:h-16 w-12 sm:w-14 md:w-16 object-cover rounded-full"
               style={{ 
@@ -65,7 +63,7 @@ const FavoritesPage = () => {
                 transformOrigin: 'left center'
               }}
               onError={(e) => {
-                console.error('Logo failed to load from:', beingHomeLogo);
+                console.error('Logo failed to load');
                 e.currentTarget.style.display = 'none';
               }}
             />
@@ -80,7 +78,7 @@ const FavoritesPage = () => {
       <main className="px-4 py-6">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <img src="/beinghomelogo.jpeg" alt="BeingHomeFoods" className="w-10 h-10 rounded-full object-cover border-2 border-primary/50" />
             <span className="ml-2 text-muted-foreground">Loading favorites...</span>
           </div>
         ) : error ? (
@@ -149,7 +147,6 @@ const FavoritesPage = () => {
       </main>
 
       {/* Bottom Navigation Bar */}
-      <BottomNavigation />
     </div>
   );
 };
